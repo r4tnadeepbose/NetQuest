@@ -1,15 +1,19 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import { Bookmark, BookmarkCheck } from 'lucide-react'
 import type { Flashcard, Rating } from '../types'
 import { useStore } from '../store'
 import { play } from '../lib/sfx'
+import { cardCompletionStatus, isDue } from '../lib/srs'
 
 export function FlashcardView({ card, onRate, showRating = true }: { card: Flashcard; onRate?: (r: Rating) => void; showRating?: boolean }) {
   const [flipped, setFlipped] = useState(false)
   const [rated, setRated] = useState(false)
   const { progress, toggleBookmark } = useStore()
   const bookmarked = progress.bookmarks.includes(card.id)
+  const review = progress.reviews[card.id]
+  const st = cardCompletionStatus(review)
+  const due = isDue(review)
 
   const submitRating = (r: Rating, sound: Parameters<typeof play>[0]) => {
     if (rated) return
@@ -18,14 +22,46 @@ export function FlashcardView({ card, onRate, showRating = true }: { card: Flash
     onRate?.(r)
   }
 
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      const t = e.target as HTMLElement | null
+      const tag = t?.tagName?.toLowerCase()
+      if (tag === 'input' || tag === 'textarea' || tag === 'select' || t?.isContentEditable) return
+      if (e.metaKey || e.ctrlKey || e.altKey) return
+      if (e.code === 'Space') {
+        e.preventDefault()
+        setFlipped(f => !f)
+        play('flip')
+      } else if (showRating && flipped && !rated) {
+        const rate = (r: Rating, sound: Parameters<typeof play>[0]) => {
+          setRated(true)
+          play(sound)
+          onRate?.(r)
+        }
+        if (e.key === '1') { e.preventDefault(); rate('again', 'wrong') }
+        else if (e.key === '2') { e.preventDefault(); rate('hard', 'tap') }
+        else if (e.key === '3') { e.preventDefault(); rate('good', 'correct') }
+        else if (e.key === '4') { e.preventDefault(); rate('easy', 'success') }
+      } else if (e.key.toLowerCase() === 'b') {
+        e.preventDefault()
+        toggleBookmark(card.id)
+      }
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [flipped, rated, showRating, card.id, toggleBookmark, onRate])
+
   return (
     <div className="w-full max-w-3xl mx-auto">
-      <div className="flex items-center justify-between mb-4 text-sm">
-        <div className="flex gap-2 items-center">
+      <div className="flex items-center justify-between mb-4 text-sm gap-3 flex-wrap">
+        <div className="flex gap-2 items-center flex-wrap">
           <span className="px-2.5 py-1 rounded-full bg-[#f5f5f7] text-[#6e6e73] uppercase tracking-wide text-[11px] font-medium">{card.type}</span>
           <span className="px-2.5 py-1 rounded-full bg-[#0071e3]/10 text-[#0071e3] text-[11px] font-medium">{card.difficulty}</span>
+          <span className={`px-2.5 py-1 rounded-full text-[11px] font-medium ${st==='strong'?'bg-[#34c759]/10 text-[#248a3d]':st==='weak'?'bg-[#ff9f0a]/10 text-[#b25000]':'bg-[#f5f5f7] text-[#6e6e73]'}`}>{st==='strong'?'Good/Easy':st==='weak'?'Again/Hard':'Not attempted'}</span>
+          <span className={`px-2.5 py-1 rounded-full text-[11px] font-medium ${due?'bg-[#0071e3]/10 text-[#0071e3]':'bg-[#f5f5f7] text-[#6e6e73]'}`}>{due?'Due now':'Scheduled'}</span>
+          {review?.lastReviewed && <span className="text-[11px] text-[#86868b]">Reps {review.repetitions || 0} · Last {new Date(review.lastReviewed).toLocaleDateString()}</span>}
         </div>
-        <button onClick={() => toggleBookmark(card.id)} className="p-2 rounded-full hover:bg-black/5 text-[#6e6e73] transition" title="Bookmark">
+        <button onClick={() => toggleBookmark(card.id)} className="p-2 rounded-full hover:bg-black/5 text-[#6e6e73] transition" title="Bookmark (B)">
           {bookmarked ? <BookmarkCheck size={18} className="text-[#0071e3]" /> : <Bookmark size={18} />}
         </button>
       </div>
@@ -73,7 +109,8 @@ export function FlashcardView({ card, onRate, showRating = true }: { card: Flash
         </div>
       )}
       <div className="flex items-center justify-center gap-3 mt-3 flex-wrap">
-        {showRating && !flipped && <div className="text-[13px] text-[#86868b]">Flip the card to rate your understanding.</div>}
+        {showRating && !flipped && <div className="text-[13px] text-[#86868b]">Flip the card to rate your understanding. (Space to flip)</div>}
+        {showRating && flipped && !rated && <div className="text-[13px] text-[#86868b]">Rate: 1 Again · 2 Hard · 3 Good · 4 Easy</div>}
         {showRating && flipped && rated && <div className="text-[13px] text-[#34c759] font-medium">Rating saved.</div>}
       </div>
     </div>

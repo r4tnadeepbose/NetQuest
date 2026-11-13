@@ -13,6 +13,13 @@ export default function Progress() {
   const mlUpdates = progress.ml?.totalUpdates || 0
   const completion = total ? Math.round((mastered / total) * 100) : 0
   const reviewCoverage = total ? Math.round((reviewed / total) * 100) : 0
+  const completionCounts = flashcards.reduce((acc, c) => {
+    const st = cardCompletionStatus(progress.reviews[c.id])
+    if (st === 'strong') acc.strong++
+    else if (st === 'weak') acc.weak++
+    else acc.unseen++
+    return acc
+  }, { strong: 0, weak: 0, unseen: 0 })
   const byChapter = chapters.map(ch => {
     const cards = flashcards.filter(f=>f.chapterId===ch.id)
     const avg = cards.length ? Math.round(cards.reduce((a,c)=>a+masteryFromReview(progress.reviews[c.id]),0)/cards.length) : 0
@@ -44,6 +51,16 @@ export default function Progress() {
       <Box label="Mastered" value={`${mastered}`} />
       <Box label="ML Understanding" value={`${mlOverall}%`} />
       <Box label="Challenge Accuracy" value={`${challengeAcc}%`} />
+    </div>
+
+    <div className="rounded-2xl border border-black/5 bg-white p-5">
+      <h2 className="text-lg font-semibold text-[#1d1d1f] mb-1">Flashcard Completion Status</h2>
+      <p className="text-sm text-[#6e6e73] mb-3">Green = last rated Good/Easy (completed). Orange = last rated Again/Hard (attended, needs improvement). Sections turn fully green only when all their cards are Good/Easy.</p>
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <div className="rounded-xl border border-[#34c759]/25 bg-[#34c759]/10 p-4"><div className="text-xs uppercase text-[#248a3d] font-medium">Completed (Good/Easy)</div><div className="text-2xl font-semibold text-[#1f7a3d] mt-1">{completionCounts.strong}</div></div>
+        <div className="rounded-xl border border-[#ff9f0a]/25 bg-[#ff9f0a]/10 p-4"><div className="text-xs uppercase text-[#b25000] font-medium">Attended (Again/Hard)</div><div className="text-2xl font-semibold text-[#9a5b00] mt-1">{completionCounts.weak}</div></div>
+        <div className="rounded-xl border border-black/10 bg-[#f5f5f7] p-4"><div className="text-xs uppercase text-[#6e6e73] font-medium">Not attempted</div><div className="text-2xl font-semibold text-[#1d1d1f] mt-1">{completionCounts.unseen}</div></div>
+      </div>
     </div>
 
     <div className="rounded-2xl border border-black/5 bg-white p-5">

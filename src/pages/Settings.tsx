@@ -63,6 +63,52 @@ export default function Settings() {
         <p className="text-xs text-[#86868b] mt-1">Audio plays after interaction (browser policy). You can mute anytime.</p>
       </div>
 
+      <div className="border-t border-black/5 pt-4">
+        <div className="text-sm font-medium text-[#1d1d1f] mb-2">Backup & Restore (Local Data)</div>
+        <div className="flex flex-wrap gap-3 items-center">
+          <button onClick={() => {
+            const data = {
+              netquest_progress_v1: localStorage.getItem('netquest_progress_v1'),
+              netquest_mcq_stats_v1: localStorage.getItem('netquest_mcq_stats_v1'),
+              netquest_prefs_v1: localStorage.getItem('netquest_prefs_v1'),
+              exportedAt: new Date().toISOString(),
+              app: 'NetQuest'
+            }
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
+            const a = document.createElement('a')
+            a.href = URL.createObjectURL(blob)
+            a.download = `netquest-backup-${new Date().toISOString().slice(0,10)}.json`
+            a.click()
+            URL.revokeObjectURL(a.href)
+            toast({ title: 'Backup exported', message: 'Progress and settings saved to a JSON file.', kind: 'success' })
+          }} className="px-4 py-2 rounded-xl border border-black/10 hover:bg-[#f5f5f7] text-sm font-medium">Export Backup</button>
+          <label className="px-4 py-2 rounded-xl border border-black/10 hover:bg-[#f5f5f7] text-sm font-medium cursor-pointer">
+            Import Backup
+            <input type="file" accept="application/json" className="hidden" onChange={(e) => {
+              const file = e.target.files?.[0]
+              if (!file) return
+              const reader = new FileReader()
+              reader.onload = () => {
+                try {
+                  const data = JSON.parse(String(reader.result || '{}'))
+                  if (!confirm('Import backup? This will replace your current local progress, MCQ stats, and preferences.')) return
+                  if (typeof data.netquest_progress_v1 === 'string') localStorage.setItem('netquest_progress_v1', data.netquest_progress_v1)
+                  if (typeof data.netquest_mcq_stats_v1 === 'string') localStorage.setItem('netquest_mcq_stats_v1', data.netquest_mcq_stats_v1)
+                  if (typeof data.netquest_prefs_v1 === 'string') localStorage.setItem('netquest_prefs_v1', data.netquest_prefs_v1)
+                  toast({ title: 'Backup imported', message: 'Reloading to apply restored data…', kind: 'success' })
+                  setTimeout(() => window.location.reload(), 400)
+                } catch {
+                  toast({ title: 'Import failed', message: 'Invalid or unreadable backup file.', kind: 'info' })
+                }
+              }
+              reader.readAsText(file)
+              e.currentTarget.value = ''
+            }} />
+          </label>
+        </div>
+        <p className="text-xs text-[#86868b] mt-2">Export/import includes progress, reviews, ML state, preferences, and MCQ stats. Keep backups safe; restore only trusted files.</p>
+      </div>
+
       <div className="text-sm text-[#6e6e73] border-t border-black/5 pt-4">
         <div className="font-medium text-[#1d1d1f] mb-1">Persistence & Platform Notes</div>
         <ul className="list-disc pl-5 space-y-1">

@@ -47,3 +47,21 @@ export function masteryFromReview(state?: ReviewState) {
   if (state.repetitions >= 5 && state.intervalDays >= 21) return 100
   return Math.min(95, state.repetitions * 18)
 }
+
+export type CardCompletionStatus = 'unseen' | 'weak' | 'strong'
+
+export function cardCompletionStatus(state?: ReviewState): CardCompletionStatus {
+  if (!state || !state.lastReviewed) return 'unseen'
+  if (state.lastRating === 'good' || state.lastRating === 'easy') return 'strong'
+  if (state.lastRating === 'again' || state.lastRating === 'hard') return 'weak'
+  // fallback for reviewed cards without lastRating
+  return state.repetitions >= 1 ? 'weak' : 'unseen'
+}
+
+export function sectionCompletionStatus(states: Array<ReviewState | undefined>): CardCompletionStatus | 'complete' {
+  if (states.length === 0) return 'unseen'
+  const statuses = states.map(s => cardCompletionStatus(s))
+  if (statuses.every(s => s === 'strong')) return 'complete'
+  if (statuses.every(s => s === 'unseen')) return 'unseen'
+  return 'weak'
+}

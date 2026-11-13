@@ -1,6 +1,6 @@
 import { useStore } from '../store'
 import { flashcards, chapters } from '../data/curriculum'
-import { isDue, masteryFromReview } from '../lib/srs'
+import { cardCompletionStatus, isDue, masteryFromReview, sectionCompletionStatus } from '../lib/srs'
 import { toolDatabase, capstones } from '../data/toolsAndTracks'
 
 export default function Progress() {
@@ -17,7 +17,9 @@ export default function Progress() {
     const cards = flashcards.filter(f=>f.chapterId===ch.id)
     const avg = cards.length ? Math.round(cards.reduce((a,c)=>a+masteryFromReview(progress.reviews[c.id]),0)/cards.length) : 0
     const ml = getTopicUnderstanding(ch.id)
-    return { ch, count: cards.length, avg, ml }
+    const sec = sectionCompletionStatus(cards.map(c => progress.reviews[c.id]))
+    const strongPct = cards.length ? Math.round(cards.filter(c => cardCompletionStatus(progress.reviews[c.id]) === 'strong').length / cards.length * 100) : 0
+    return { ch, count: cards.length, avg, ml, sec, strongPct }
   }).filter(x=>x.count>0)
 
   const dom = (d:'red_vapt'|'blue_soc'|'networking') => {
@@ -120,8 +122,13 @@ export default function Progress() {
 
     <div className="rounded-2xl border border-black/5 bg-white p-5">
       <h2 className="text-lg font-semibold text-[#1d1d1f] mb-1">Topic Mastery & ML Understanding by Chapter</h2>
-      <p className="text-sm text-[#6e6e73] mb-4">Per-chapter progress bars are sized within cards for readability on wide screens.</p>
-      <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-4">{byChapter.map(({ch,count,avg,ml})=> <div key={ch.id} className="border border-black/5 rounded-xl p-4 bg-[#fbfbfd]"><div className="flex justify-between gap-3 text-sm mb-1.5"><span className="text-[#1d1d1f] font-medium line-clamp-2">{ch.title}</span><span className="text-[#6e6e73] shrink-0 tabular-nums">{avg}%</span></div><div className="h-2 bg-[#e8e8ed] rounded-full overflow-hidden mb-3"><div className="h-full bg-blue-500 rounded-full transition-all" style={{width:`${avg}%`}} /></div><div className="flex justify-between text-xs mb-1.5"><span className="text-[#86868b]">ML confidence</span><span className="text-[#0071e3] font-medium tabular-nums">{ml}%</span></div><div className="h-2 bg-[#e8e8ed] rounded-full overflow-hidden"><div className="h-full bg-[#0071e3] rounded-full transition-all" style={{width:`${ml}%`}} /></div><div className="text-xs text-[#86868b] mt-2.5">{count} cards • lower confidence topics prioritized adaptively</div></div>)}</div>
+      <p className="text-sm text-[#6e6e73] mb-4">Section turns fully green only when all cards in it are completed with Good/Easy. If attended but any card is Again/Hard (or not fully completed), it turns orange. Not started sections remain neutral.</p>
+      <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-4">{byChapter.map(({ch,count,avg,ml,sec,strongPct})=> {
+        const barClass = sec === 'complete' ? 'bg-[#34c759]' : sec === 'weak' ? 'bg-[#ff9f0a]' : 'bg-blue-500'
+        const cardBorder = sec === 'complete' ? 'border-[#34c759]/30 bg-[#34c759]/5' : sec === 'weak' ? 'border-[#ff9f0a]/30 bg-[#ff9f0a]/5' : 'border-black/5 bg-[#fbfbfd]'
+        const statusText = sec === 'complete' ? 'Completed (all Good/Easy)' : sec === 'weak' ? 'Attended — needs improvement' : 'Not started'
+        return <div key={ch.id} className={`border rounded-xl p-4 ${cardBorder}`}><div className="flex justify-between gap-3 text-sm mb-1.5"><span className="text-[#1d1d1f] font-medium line-clamp-2">{ch.title}</span><span className="text-[#6e6e73] shrink-0 tabular-nums">{strongPct}%</span></div><div className="h-2 bg-[#e8e8ed] rounded-full overflow-hidden mb-1.5"><div className={`h-full ${barClass} rounded-full transition-all`} style={{width:`${strongPct}%`}} /></div><div className="text-[11px] text-[#86868b] mb-3">{statusText}</div><div className="flex justify-between text-xs mb-1.5"><span className="text-[#86868b]">ML confidence</span><span className="text-[#0071e3] font-medium tabular-nums">{ml}%</span></div><div className="h-2 bg-[#e8e8ed] rounded-full overflow-hidden"><div className="h-full bg-[#0071e3] rounded-full transition-all" style={{width:`${ml}%`}} /></div><div className="text-xs text-[#86868b] mt-2.5">{count} cards • avg mastery {avg}% • lower confidence topics prioritized adaptively</div></div>
+      })}</div>
     </div>
   </div>
 }

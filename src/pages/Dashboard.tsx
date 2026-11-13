@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { useStore } from '../store'
 import { flashcards, chapters } from '../data/curriculum'
 import { LEVELS } from '../lib/levels'
-import { isDue } from '../lib/srs'
+import { isDue, sectionCompletionStatus } from '../lib/srs'
 import { toolDatabase, capstones } from '../data/toolsAndTracks'
 
 export default function Dashboard() {
@@ -22,7 +22,8 @@ export default function Dashboard() {
   const chapterProgress = chapters.map(ch => {
     const cards = flashcards.filter(f => f.chapterId === ch.id)
     const m = cards.filter(c => (progress.reviews[c.id]?.repetitions || 0) >= 4).length
-    return { ...ch, total: cards.length, mastered: m, pct: cards.length ? Math.round(m/cards.length*100) : 0, ml: getTopicUnderstanding(ch.id) }
+    const sec = sectionCompletionStatus(cards.map(c => progress.reviews[c.id]))
+    return { ...ch, total: cards.length, mastered: m, pct: cards.length ? Math.round(m/cards.length*100) : 0, ml: getTopicUnderstanding(ch.id), sec }
   }).sort((a,b)=>b.ml-a.ml || b.total-a.total).slice(0,6)
 
   const domStats = (dom: 'red_vapt'|'blue_soc'|'networking') => {
@@ -102,9 +103,10 @@ export default function Dashboard() {
         </Panel>
         <Panel title="Top Topics">
           <div className="space-y-3">
-            {chapterProgress.slice(0,5).map(ch => (
-              <div key={ch.id}><div className="flex justify-between mb-1.5 text-[14px]"><span className="text-[#1d1d1f] truncate pr-2">{ch.title}</span><span className="text-[#6e6e73]">{ch.ml}%</span></div><div className="h-1.5 rounded-full bg-black/5 overflow-hidden"><div className="h-full bg-[#0071e3] rounded-full" style={{width:`${ch.ml}%`}} /></div></div>
-            ))}
+            {chapterProgress.slice(0,5).map(ch => {
+              const bar = ch.sec === 'complete' ? 'bg-[#34c759]' : ch.sec === 'weak' ? 'bg-[#ff9f0a]' : 'bg-[#0071e3]'
+              return <div key={ch.id}><div className="flex justify-between mb-1.5 text-[14px]"><span className="text-[#1d1d1f] truncate pr-2">{ch.title}</span><span className="text-[#6e6e73]">{ch.ml}%</span></div><div className="h-1.5 rounded-full bg-black/5 overflow-hidden"><div className={`h-full ${bar} rounded-full transition-all`} style={{width:`${ch.ml}%`}} /></div></div>
+            })}
             {mlUpdates === 0 && <div className="text-[#6e6e73] text-[14px]">Rate cards to build your understanding model.</div>}
           </div>
         </Panel>

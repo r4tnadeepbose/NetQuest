@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Application Sidenav</title>
+<style>
+  :root {
+    --sidenav-width: 280px;
+    --bg: #0f172a;
+    --bg-elev: #111827;
+    --bg-hover: #1f2937;
+    --bg-active: rgba(59, 130, 246, 0.14);
+    --border: #243044;
+    --text: #e5e7eb;
+    --muted: #94a3b8;
+    --muted-2: #64748b;
+    --accent: #60a5fa;
+    --accent-strong: #3b82f6;
+    --badge-bg: #ef4444;
+    --badge-text: #ffffff;
+    --progress-track: #243044;
+    --progress-fill: #3b82f6;
+    --btn-secondary-bg: #1f2937;
+    --btn-secondary-border: #334155;
+    --btn-secondary-hover: #273449;
+    --focus: #93c5fd;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif; background: transparent; }
+
+  /* External toggle for narrow viewports (not main content) */
+  .sidenav-toggle {
+    display: none;
+    position: fixed;
+    top: 12px;
+    left: 12px;
+    z-index: 1100;
+    width: 40px;
+    height: 40px;
+    border: 1px solid var(--btn-secondary-border);
+    border-radius: 10px;
+    background: var(--bg-elev);
+    color: var(--text);
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+  }
+  .sidenav-toggle:hover { background: var(--btn-secondary-hover); }
+  .sidenav-toggle:focus-visible,
+  .sidenav a:focus-visible,
+  .sidenav button:focus-visible,
+  .sidenav input:focus-visible {
+    outline: 2px solid var(--focus);
+    outline-offset: 2px;
+  }
+
+  .sidenav {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: var(--sidenav-width);
+    height: 100vh;
+    background: linear-gradient(180deg, var(--bg) 0%, #0b1220 100%);
+    color: var(--text);
+    border-right: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+    z-index: 1000;
+    transform: translateX(0);
+    transition: transform 0.2s ease;
+  }
+
+  .sidenav-inner {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-height: 0; /* allow middle section to shrink/scroll */
+  }
+
+  /* Brand header */
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 18px 16px 14px;
+    flex: 0 0 auto;
+  }
+  .brand-mark {
+    width: 28px;
+    height: 28px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: #dbeafe;
+    background: rgba(59,130,246,0.18);
+    border: 1px solid rgba(96,165,250,0.35);
+    border-radius: 8px;
+    flex: 0 0 auto;
+  }
+  .brand-mark svg, .icon svg { width: 16px; height: 16px; display: block; }
+  .brand-name {
+    font-size: 16px;
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: 0.01em;
+    color: #f8fafc;
+  }
+
+  /* Search */
+  .search-wrap {
+    padding: 0 16px 12px;
+    flex: 0 0 auto;
+  }
+  .search-field {
+    position: relative;
+  }
+  .search-field .search-icon {
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--muted-2);
+    display: inline-flex;
+    pointer-events: none;
+  }
+  .search-field input {
+    width: 100%;
+    height: 38px;
+    padding: 0 12px 0 34px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: #0b1324;
+    color: var(--text);
+    font: inherit;
+    font-size: 14px;
+  }
+  .search-field input::placeholder { color: var(--muted-2); }
+  .search-field input:hover { border-color: #334155; }
+  .search-field input:focus {
+    border-color: var(--accent-strong);
+    box-shadow: 0 0 0 3px rgba(59,130,246,0.18);
+    outline: none;
+  }
+
+  /* Scrollable nav */
+  .nav-scroll {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    padding: 4px 8px 12px;
+  }
+  .nav-scroll::-webkit-scrollbar { width: 8px; }
+  .nav-scroll::-webkit-scrollbar-thumb { background: #334155; border-radius: 999px; }
+  .nav-scroll { scrollbar-width: thin; scrollbar-color: #334155 transparent; }
+
+  .nav-list, .submenu {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  .nav-item { margin: 2px 0; }
+
+  .nav-row, .submenu a {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 10px;
+    border-radius: 10px;
+    color: var(--muted);
+    text-decoration: none;
+    background: transparent;
+    border: 0;
+    font: inherit;
+    font-size: 14px;
+    line-height: 1.2;
+    cursor: pointer;
+    text-align: left;
+  }
+  .nav-row:hover, .submenu a:hover { background: var(--bg-hover); color: var(--text); }
+  .nav-row .icon {
+    width: 18px;
+    height: 18px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: currentColor;
+    flex: 0 0 auto;
+  }
+  .nav-row .label { flex: 1 1 auto; min-width: 0; }
+  .nav-row .chevron {
+    width: 16px;
+    height: 16px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--muted-2);
+    transition: transform 0.18s ease;
+    flex: 0 0 auto;
+  }
+  .nav-item.open > .nav-row .chevron { transform: rotate(90deg); }
+
+  /* Active/highlight section */
+  .nav-item.active > .nav-row {
+    background: var(--bg-active);
+    color: #dbeafe;
+  }
+  .nav-item.active > .nav-row .icon,
+  .nav-item.active > .nav-row .chevron { color: var(--accent); }
+
+  /* Numeric badge */
+  .badge {
+    min-width: 20px;
+    height: 20px;
+    padding: 0 6px;
+    border-radius: 999px;
+    background: var(--badge-bg);
+    color: var(--badge-text);
+    font-size: 11px;
+    font-weight: 700;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1; /* ensures number never sits off-center */
+    flex: 0 0 auto;
+  }
+
+  /* Submenu */
+  .submenu {
+    display: none;
+    margin: 2px 0 4px 28px; /* indented under label (past leading icon) */
+    padding-left: 10px;
+    border-left: 1px solid #243044;
+  }
+  .nav-item.open > .submenu { display: block; }
+  .submenu li { margin: 1px 0; }
+  .submenu a {
+    padding: 7px 10px;
+    font-size: 13px;
+    color: var(--muted);
+    gap: 0; /* plain text labels without leading icons */
+  }
+  .submenu a:hover { color: var(--text); }
+
+  .nav-item[hidden] { display: none !important; }
+
+  /* Storage indicator (pinned bottom) */
+  .storage {
+    flex: 0 0 auto;
+    padding: 14px 16px 16px;
+    border-top: 1px solid var(--border);
+    background: rgba(11, 18, 32, 0.9);
+  }
+  .storage-label {
+    font-size: 12px;
+    color: var(--muted);
+    line-height: 1.3;
+  }
+  .storage-count {
+    margin-top: 4px;
+    font-size: 14px;
+    font-weight: 700;
+    color: #f1f5f9;
+    line-height: 1.3;
+  }
+  .progress {
+    margin-top: 10px;
+    height: 8px;
+    width: 100%;
+    background: var(--progress-track);
+    border-radius: 999px;
+    overflow: hidden;
+  }
+  .progress-bar {
+    height: 100%;
+    width: 46.67%; /* 70 of 150 GB */
+    background: linear-gradient(90deg, var(--accent-strong), var(--accent));
+    border-radius: inherit;
+  }
+  .upgrade-btn {
+    margin-top: 12px;
+    width: 100%;
+    height: 38px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 0 12px;
+    border-radius: 10px;
+    border: 1px solid var(--btn-secondary-border);
+    background: var(--btn-secondary-bg);
+    color: var(--text);
+    font: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .upgrade-btn:hover { background: var(--btn-secondary-hover); }
+  .upgrade-btn .icon { display: inline-flex; color: #cbd5e1; }
+
+  /* Narrow viewports: collapse off-screen, accessible via external toggle */
+  @media (max-width: 768px) {
+    .sidenav-toggle { display: inline-flex; }
+    .sidenav { transform: translateX(-100%); box-shadow: none; }
+    body.sidenav-open .sidenav { transform: translateX(0); box-shadow: 0 10px 30px rgba(0,0,0,0.35); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .sidenav, .nav-row .chevron { transition: none; }
+  }
+</style>
+</head>
+<body>
+  <!-- External toggle for narrow viewports -->
+  <button class="sidenav-toggle" type="button" aria-label="Open navigation" aria-controls="app-sidenav" aria-expanded="false">
+    <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+      <path d="M4 6h16M4 12h16M4 18h16"></path>
+    </svg>
+  </button>
+
+  <aside id="app-sidenav" class="sidenav" aria-label="Application">
+    <div class="sidenav-inner">
+      <header class="brand">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 3l8 4.5v9L12 21l-8-4.5v-9L12 3z"></path>
+            <path d="M12 7v10M7.5 9.5l9 5"></path>
+          </svg>
+        </span>
+        <span class="brand-name">Acme Cloud</span>
+      </header>
+
+      <div class="search-wrap">
+        <div class="search-field">
+          <span class="search-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="11" cy="11" r="7"></circle>
+              <path d="M20 20l-3.5-3.5"></path>
+            </svg>
+          </span>
+          <input id="nav-search" type="search" placeholder="Search..." aria-label="Search navigation" />
+        </div>
+      </div>
+
+      <nav class="nav-scroll" aria-label="Primary">
+        <ul class="nav-list" id="nav-list">
+          <li class="nav-item">
+            <a class="nav-row" href="#home">
+              <span class="icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5L12 3l9 7.5"></path><path d="M5 9.5V20h14V9.5"></path></svg>
+              </span>
+              <span class="label">Home</span>
+            </a>
+          </li>
+
+          <li class="nav-item active open">
+            <button class="nav-row" type="button" aria-expanded="true" aria-controls="submenu-projects">
+              <span class="icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h6l2 2h10v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7z"></path></svg>
+              </span>
+              <span class="label">Projects</span>
+              <span class="chevron" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"></path></svg>
+              </span>
+            </button>
+            <ul class="submenu" id="submenu-projects">
+              <li><a href="#projects-all">All projects</a></li>
+              <li><a href="#projects-active">Active</a></li>
+              <li><a href="#projects-archived">Archived</a></li>
+            </ul>
+          </li>
+
+          <li class="nav-item">
+            <a class="nav-row" href="#inbox">
+              <span class="icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16v11h-5l-2 3h-2l-2-3H4z"></path></svg>
+              </span>
+              <span class="label">Inbox</span>
+              <span class="badge" aria-label="3 unread">3</span>
+            </a>
+          </li>
+
+          <li class="nav-item">
+            <button class="nav-row" type="button" aria-expanded="false" aria-controls="submenu-tasks">
+              <span class="icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3L22 4"></path><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>
+              </span>
+              <span class="label">Tasks</span>
+              <span class="chevron" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"></path></svg>
+              </span>
+            </button>
+            <ul class="submenu" id="submenu-tasks">
+              <li><a href="#tasks-my">My tasks</a></li>
+              <li><a href="#tasks-team">Team tasks</a></li>
+              <li><a href="#tasks-completed">Completed</a></li>
+            </ul>
+          </li>
+
+          <li class="nav-item">
+            <button class="nav-row" type="button" aria-expanded="false" aria-controls="submenu-reports">
+              <span class="icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V5"></path><path d="M8 19v-6"></path><path d="M12 19V9"></path><path d="M16 19v-4"></path><path d="M20 19V7"></path></svg>
+              </span>
+              <span class="label">Reports</span>
+              <span class="chevron" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"></path></svg>
+              </span>
+            </button>
+            <ul class="submenu" id="submenu-reports">
+              <li><a href="#reports-overview">Overview</a></li>
+              <li><a href="#reports-analytics">Analytics</a></li>
+            </ul>
+          </li>
+
+          <li class="nav-item">
+            <a class="nav-row" href="#settings">
+              <span class="icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1 1 0 0 0 .2 1.1l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1 1 0 0 0-1.1-.2 1 1 0 0 0-.6.9V20a2 2 0 1 1-4 0v-.1a1 1 0 0 0-.7-.9 1 1 0 0 0-1.1.2l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1 1 0 0 0 .2-1.1 1 1 0 0 0-.9-.6H4a2 2 0 1 1 0-4h.1a1 1 0 0 0 .9-.7 1 1 0 0 0-.2-1.1l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1 1 0 0 0 1.1.2h.1a1 1 0 0 0 .6-.9V4a2 2 0 1 1 4 0v.1a1 1 0 0 0 .6.9 1 1 0 0 0 1.1-.2l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1 1 0 0 0-.2 1.1v.1a1 1 0 0 0 .9.6H20a2 2 0 1 1 0 4h-.1a1 1 0 0 0-.9.6z"></path></svg>
+              </span>
+              <span class="label">Settings</span>
+            </a>
+          </li>
+        </ul>
+      </nav>
+
+      <div class="storage" aria-label="Storage usage">
+        <div class="storage-label">Space left</div>
+        <div class="storage-count">70 of 150 GB</div>
+        <div class="progress" role="progressbar" aria-label="Storage used" aria-valuenow="70" aria-valuemin="0" aria-valuemax="150">
+          <div class="progress-bar"></div>
+        </div>
+        <button class="upgrade-btn" type="button">
+          <span class="icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l3 6 6 .9-4.5 4.4 1 6.2L12 17.8 6.5 20.5l1-6.2L3 9.9 9 9z"></path></svg>
+          </span>
+          <span>Upgrade to pro</span>
+        </button>
+      </div>
+    </div>
+  </aside>
+
+<script>
+  (function () {
+    const body = document.body;
+    const toggle = document.querySelector('.sidenav-toggle');
+    const sidenav = document.getElementById('app-sidenav');
+    const searchInput = document.getElementById('nav-search');
+
+    // Narrow viewport: external toggle open/close
+    if (toggle) {
+      toggle.addEventListener('click', () => {
+        const open = body.classList.toggle('sidenav-open');
+        toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+        toggle.setAttribute('aria-label', open ? 'Close navigation' : 'Open navigation');
+      });
+    }
+
+    // Dropdown toggles (chevron rotation handled by .open class in CSS)
+    sidenav.querySelectorAll('.nav-item > button.nav-row[aria-controls]').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const item = btn.closest('.nav-item');
+        const isOpen = item.classList.toggle('open');
+        btn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+      });
+    });
+
+    // Search: filter visible navigation items (and matching child links)
+    function normalize(s) { return (s || '').toLowerCase().trim(); }
+    function filterNav(query) {
+      const q = normalize(query);
+      const items = sidenav.querySelectorAll('.nav-list > .nav-item');
+      items.forEach((item) => {
+        const row = item.querySelector(':scope > .nav-row');
+        const label = normalize(row ? row.textContent : item.textContent);
+        const submenuLinks = item.querySelectorAll(':scope > .submenu a');
+        let childMatch = false;
+
+        submenuLinks.forEach((a) => {
+          const match = !q || normalize(a.textContent).includes(q);
+          a.parentElement.hidden = !match;
+          if (match) childMatch = true;
+        });
+
+        const selfMatch = !q || label.includes(q);
+        const visible = selfMatch || childMatch;
+        item.hidden = !visible;
+
+        // Auto-expand when filtering reveals child matches; preserve expanded state when cleared
+        const toggleBtn = item.querySelector(':scope > button.nav-row[aria-controls]');
+        if (toggleBtn) {
+          if (q && childMatch) {
+            item.classList.add('open');
+            toggleBtn.setAttribute('aria-expanded', 'true');
+          } else if (!q) {
+            // restore default open state for the highlighted Projects section only
+            const isProjects = toggleBtn.getAttribute('aria-controls') === 'submenu-projects';
+            item.classList.toggle('open', isProjects);
+            toggleBtn.setAttribute('aria-expanded', isProjects ? 'true' : 'false');
+          }
+        }
+      });
+    }
+
+    searchInput.addEventListener('input', (e) => filterNav(e.target.value));
+    // Also allow triggering a search action on Enter (no main content; dispatch event for integrators)
+    searchInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        sidenav.dispatchEvent(new CustomEvent('sidenav:search', { detail: { query: searchInput.value } }));
+      }
+    });
+  })();
+</script>
+</body>
+</html>

@@ -3,9 +3,10 @@ import { useSearchParams } from 'react-router-dom'
 import { flashcards, chapters, parts } from '../data/curriculum'
 import { FlashcardView } from '../components/FlashcardView'
 import { useStore } from '../store'
+import { cardCompletionStatus } from '../lib/srs'
 
 export default function Flashcards() {
-  const { rateCard } = useStore()
+  const { rateCard, progress } = useStore()
   const [searchParams] = useSearchParams()
   const [q, setQ] = useState('')
   const [part, setPart] = useState('all')
@@ -69,13 +70,27 @@ export default function Flashcards() {
         <div className="rounded-2xl border border-black/5 bg-white p-3 max-h-[70vh] overflow-auto">
           <div className="text-sm text-[#6e6e73] mb-2">{filtered.length} cards</div>
           <div className="space-y-2">
-            {filtered.map(c => (
-              <button key={c.id} onClick={()=>setActiveId(c.id)} className={`w-full text-left p-3 rounded-xl border ${active?.id===c.id?'border-[#0071e3]/30 bg-[#0071e3]/10':'border-black/5 hover:bg-black/5'}`}>
-                <div className="text-sm text-[#1d1d1f] font-medium">{c.front.title}</div>
-                <div className="text-xs text-[#6e6e73] mt-1 line-clamp-2">{c.front.question}</div>
-                <div className="mt-2 flex gap-2 text-[10px]"><span className="px-1.5 py-0.5 rounded bg-[#f5f5f7] text-[#1d1d1f]/80">{c.difficulty}</span><span className="px-1.5 py-0.5 rounded bg-[#f5f5f7] text-[#1d1d1f]/80">{chapters.find(ch=>ch.id===c.chapterId)?.title}</span></div>
-              </button>
-            ))}
+            {filtered.map(c => {
+              const st = cardCompletionStatus(progress.reviews[c.id])
+              const isActive = active?.id === c.id
+              const base = st === 'strong'
+                ? (isActive ? 'border-[#34c759]/50 bg-[#34c759]/15' : 'border-[#34c759]/30 bg-[#34c759]/5 hover:bg-[#34c759]/10')
+                : st === 'weak'
+                  ? (isActive ? 'border-[#ff9f0a]/50 bg-[#ff9f0a]/15' : 'border-[#ff9f0a]/30 bg-[#ff9f0a]/5 hover:bg-[#ff9f0a]/10')
+                  : (isActive ? 'border-[#0071e3]/30 bg-[#0071e3]/10' : 'border-black/5 hover:bg-black/5')
+              const titleColor = st === 'strong' ? 'text-[#1f7a3d]' : st === 'weak' ? 'text-[#9a5b00]' : 'text-[#1d1d1f]'
+              const statusLabel = st === 'strong' ? 'Completed (Good/Easy)' : st === 'weak' ? 'Attended (Again/Hard)' : 'Not attempted'
+              return (
+                <button key={c.id} onClick={()=>setActiveId(c.id)} title={statusLabel} className={`w-full text-left p-3 rounded-xl border ${base}`}>
+                  <div className="flex items-start justify-between gap-2">
+                    <div className={`text-sm font-medium ${titleColor}`}>{c.front.title}</div>
+                    {st !== 'unseen' && <span className={`shrink-0 text-[10px] font-semibold px-1.5 py-0.5 rounded ${st==='strong'?'bg-[#34c759]/20 text-[#248a3d]':'bg-[#ff9f0a]/20 text-[#b25000]'}`}>{st==='strong'?'Good/Easy':'Again/Hard'}</span>}
+                  </div>
+                  <div className="text-xs text-[#6e6e73] mt-1 line-clamp-2">{c.front.question}</div>
+                  <div className="mt-2 flex flex-wrap gap-2 text-[10px]"><span className="px-1.5 py-0.5 rounded bg-[#f5f5f7] text-[#1d1d1f]/80">{c.difficulty}</span><span className="px-1.5 py-0.5 rounded bg-[#f5f5f7] text-[#1d1d1f]/80">{chapters.find(ch=>ch.id===c.chapterId)?.title}</span><span className={`px-1.5 py-0.5 rounded ${st==='strong'?'bg-[#34c759]/15 text-[#248a3d]':st==='weak'?'bg-[#ff9f0a]/15 text-[#b25000]':'bg-[#f5f5f7] text-[#6e6e73]'}`}>{statusLabel}</span></div>
+                </button>
+              )
+            })}
             {filtered.length===0 && <div className="text-[#6e6e73] text-sm p-2">No cards match filters.</div>}
           </div>
         </div>

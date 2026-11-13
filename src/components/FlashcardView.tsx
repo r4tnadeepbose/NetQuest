@@ -1,29 +1,15 @@
-import { useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { useState } from 'react'
 import { motion } from 'framer-motion'
-import { Bookmark, BookmarkCheck, Workflow } from 'lucide-react'
+import { Bookmark, BookmarkCheck } from 'lucide-react'
 import type { Flashcard, Rating } from '../types'
 import { useStore } from '../store'
 import { play } from '../lib/sfx'
-
-function getVisualSimId(card: Flashcard): string | null {
-  const hay = `${card.chapterId} ${card.partId} ${card.tags.join(' ')} ${card.front.title} ${card.front.question}`.toLowerCase()
-  if (hay.includes('dns') || hay.includes('domain name')) return 'dns-resolution'
-  if (hay.includes('dhcp') || hay.includes('dora')) return 'dhcp-dora'
-  if (hay.includes('arp') || hay.includes('address resolution')) return 'arp-resolution'
-  if (hay.includes('three-way') || hay.includes('handshake') || hay.includes('syn')) return 'tcp-handshake'
-  if (hay.includes('osi') || hay.includes('encapsulation') || hay.includes('decapsulation')) return 'osi-encapsulation'
-  if (hay.includes('packet journey') || hay.includes('hop') || hay.includes('ttl') || hay.includes('next hop')) return 'packet-journey'
-  if (hay.includes('spoof') && hay.includes('arp')) return 'arp-spoof'
-  return null
-}
 
 export function FlashcardView({ card, onRate, showRating = true }: { card: Flashcard; onRate?: (r: Rating) => void; showRating?: boolean }) {
   const [flipped, setFlipped] = useState(false)
   const [rated, setRated] = useState(false)
   const { progress, toggleBookmark } = useStore()
   const bookmarked = progress.bookmarks.includes(card.id)
-  const simId = useMemo(() => getVisualSimId(card), [card])
 
   const submitRating = (r: Rating, sound: Parameters<typeof play>[0]) => {
     if (rated) return
@@ -89,7 +75,6 @@ export function FlashcardView({ card, onRate, showRating = true }: { card: Flash
       <div className="flex items-center justify-center gap-3 mt-3 flex-wrap">
         {showRating && !flipped && <div className="text-[13px] text-[#86868b]">Flip the card to rate your understanding.</div>}
         {showRating && flipped && rated && <div className="text-[13px] text-[#34c759] font-medium">Rating saved.</div>}
-        {simId && <Link to={`/visualizer?sim=${simId}`} className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-[#0071e3]/30 bg-[#0071e3]/10 text-[#0071e3] text-[13px] font-medium hover:bg-[#0071e3]/15 transition"><Workflow size={14} /> Open in Visual Lab</Link>}
       </div>
     </div>
   )

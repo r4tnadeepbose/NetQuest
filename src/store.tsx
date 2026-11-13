@@ -209,7 +209,9 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       if (card) {
         const dom = getDomainOfCard(card)
         const dp = { ...cyber.domains[dom] }
-        dp.seen = Math.max(dp.seen, Object.values(p.reviews).filter(r => { const cc = flashcards.find(f=>f.id===r.cardId); return cc && getDomainOfCard(cc)===dom }).length + 1)
+        const reviewsAfter = { ...p.reviews, [cardId]: nextReview }
+        const seenCount = Object.values(reviewsAfter).filter(r => { const cc = flashcards.find(f=>f.id===r.cardId); return cc && getDomainOfCard(cc)===dom }).length
+        dp.seen = Math.max(dp.seen, seenCount)
         if (masteryFromReview(nextReview) >= 100) dp.mastered += (masteryFromReview(prev) >= 100 ? 0 : 1)
         if (rating === 'good' || rating === 'easy') dp.theoretical += 1
         const practicalTypes = ['scenario','command','troubleshoot','packet','security']

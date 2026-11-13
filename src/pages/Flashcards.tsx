@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { flashcards, chapters, parts } from '../data/curriculum'
 import { FlashcardView } from '../components/FlashcardView'
 import { useStore } from '../store'
@@ -21,7 +21,12 @@ export default function Flashcards() {
     }
     return true
   }), [q, part, diff, type])
-  const active = flashcards.find(c => c.id === activeId) || filtered[0]
+  const active = useMemo(() => flashcards.find(c => c.id === activeId && filtered.some(f => f.id === c.id)) || filtered[0], [activeId, filtered])
+
+  useEffect(() => {
+    if (!filtered.length) return
+    if (!activeId || !filtered.some(c => c.id === activeId)) setActiveId(filtered[0].id)
+  }, [filtered, activeId])
 
   return (
     <div className="space-y-4">
@@ -48,7 +53,7 @@ export default function Flashcards() {
             {filtered.length===0 && <div className="text-[#6e6e73] text-sm p-2">No cards match filters.</div>}
           </div>
         </div>
-        <div>{active ? <FlashcardView card={active} onRate={(r)=>rateCard(active.id,r)} /> : <div className="text-[#6e6e73]">Select a card</div>}</div>
+        <div>{active ? <FlashcardView key={active.id} card={active} onRate={(r)=>rateCard(active.id,r)} /> : <div className="text-[#6e6e73]">Select a card</div>}</div>
       </div>
     </div>
   )

@@ -46,6 +46,10 @@ export default function Visualizer() {
                 setCat(next)
                 const first = simsByCategory(next)[0]
                 if (first) pick(first)
+                else {
+                  setSelected(null)
+                  setParams({})
+                }
               }}
               className="appearance-none rounded-lg border border-black/10 bg-[#fbfbfd] pl-2.5 pr-7 py-1.5 text-[12px] text-[#1d1d1f] focus:outline-none focus:ring-2 focus:ring-[#0071e3]/25 max-w-[180px]"
             >
@@ -60,9 +64,10 @@ export default function Visualizer() {
                 const found = simulations.find(s => s.id === e.target.value)
                 if (found) pick(found)
               }}
-              className="appearance-none rounded-lg border border-black/10 bg-[#fbfbfd] pl-2.5 pr-7 py-1.5 text-[12px] font-medium text-[#1d1d1f] focus:outline-none focus:ring-2 focus:ring-[#0071e3]/25 max-w-[220px]"
+              disabled={list.length === 0}
+              className="appearance-none rounded-lg border border-black/10 bg-[#fbfbfd] pl-2.5 pr-7 py-1.5 text-[12px] font-medium text-[#1d1d1f] focus:outline-none focus:ring-2 focus:ring-[#0071e3]/25 max-w-[220px] disabled:opacity-50"
             >
-              {list.length === 0 && <option value="">None</option>}
+              {list.length === 0 && <option value="">No simulations</option>}
               {list.map(s => <option key={s.id} value={s.id}>{s.title}</option>)}
             </select>
             <ChevronDown size={13} className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 text-[#86868b]" />

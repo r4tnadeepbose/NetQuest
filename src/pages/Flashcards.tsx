@@ -1,15 +1,41 @@
 import { useEffect, useMemo, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { flashcards, chapters, parts } from '../data/curriculum'
 import { FlashcardView } from '../components/FlashcardView'
 import { useStore } from '../store'
 
 export default function Flashcards() {
   const { rateCard } = useStore()
+  const [searchParams] = useSearchParams()
   const [q, setQ] = useState('')
   const [part, setPart] = useState('all')
   const [diff, setDiff] = useState('all')
   const [type, setType] = useState('all')
   const [activeId, setActiveId] = useState(flashcards[0]?.id)
+
+  useEffect(() => {
+    const cardParam = searchParams.get('card')
+    const qParam = searchParams.get('q')
+    const partParam = searchParams.get('part')
+    const typeParam = searchParams.get('type')
+
+    if (qParam !== null) setQ(qParam)
+    if (partParam && (partParam === 'all' || parts.some(p => p.id === partParam))) setPart(partParam)
+    const allowedTypes = new Set(['all','concept','how','deep','scenario','security','packet','command','troubleshoot','compare','diagram'])
+    if (typeParam && allowedTypes.has(typeParam)) setType(typeParam)
+
+    if (cardParam) {
+      const target = flashcards.find(c => c.id === cardParam)
+      if (target) {
+        setActiveId(target.id)
+        // ensure the target card is visible
+        setPart('all')
+        setDiff('all')
+        setType('all')
+        if (qParam === null) setQ('')
+      }
+    }
+  }, [searchParams])
   const filtered = useMemo(() => flashcards.filter(c => {
     if (part !== 'all' && c.partId !== part) return false
     if (diff !== 'all' && c.difficulty !== diff) return false

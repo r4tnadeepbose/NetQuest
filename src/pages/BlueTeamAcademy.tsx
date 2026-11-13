@@ -51,7 +51,7 @@ export default function BlueTeamAcademy() {
         <div className="text-sm text-[#1d1d1f]/80 space-y-2">
           <p>Every major offensive concept in NetQuest is paired with defensive implications: required telemetry, detection logic ideas, investigation steps, and prevention/remediation.</p>
           <p className="text-[#6e6e73]">Examples: ARP/DNS abuse, SYN floods, VLAN hopping, SQLi/XSS/SSRF/IDOR, auth bypass, credential exposure, lateral movement, AD/cloud misconfigurations.</p>
-          <Link to="/flashcards" className="inline-block text-[#0071e3] hover:text-[#0071e3]">Open multi-perspective cards →</Link>
+          <Link to="/flashcards?q=multi-perspective" className="inline-block text-[#0071e3] hover:text-[#0071e3]">Open multi-perspective cards →</Link>
         </div>
       </Panel>
     </div>

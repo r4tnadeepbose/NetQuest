@@ -59,10 +59,11 @@ export default function RedTeamAcademy() {
     </div>
 
     <Panel title="Multi-Perspective Flashcards (Red / Blue / VAPT)">
-      <p className="text-sm text-[#6e6e73] mb-3">Each key concept includes offensive mechanics (authorized), defensive detection/response, and VAPT assessment/reporting perspective.</p>
+      <p className="text-sm text-[#6e6e73] mb-3">Each key concept includes offensive mechanics (authorized), defensive detection/response, and VAPT assessment/reporting perspective. Click any card to open it directly in Flashcards.</p>
       <div className="grid md:grid-cols-2 gap-2">
-        {multi.slice(0,12).map(c=> <Link key={c.id} to="/flashcards" className="border border-black/5 rounded-xl p-3 hover:bg-black/5"><div className="text-[#1d1d1f] text-sm font-medium">{c.front.title}</div><div className="text-xs text-[#6e6e73] mt-1">{c.front.question}</div></Link>)}
+        {multi.slice(0,12).map(c=> <Link key={c.id} to={`/flashcards?card=${encodeURIComponent(c.id)}`} className="border border-black/5 rounded-xl p-3 hover:bg-black/5"><div className="text-[#1d1d1f] text-sm font-medium">{c.front.title}</div><div className="text-xs text-[#6e6e73] mt-1">{c.front.question}</div></Link>)}
       </div>
+      {multi.length > 12 && <div className="mt-3"><Link to="/flashcards?q=multi-perspective" className="text-[#0071e3] hover:text-[#0077ed] text-sm font-medium">View all multi-perspective cards →</Link></div>}
     </Panel>
   </div>
 }

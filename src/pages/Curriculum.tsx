@@ -96,7 +96,7 @@ export default function Curriculum() {
             <div className="rounded-2xl border border-black/5 bg-white p-4"><div className="text-xs uppercase text-[#6e6e73]">Track</div><div className="text-sm text-[#1d1d1f] mt-2">Structured Networking Roadmap</div></div>
           </div>
           <div className="rounded-2xl border border-black/5 bg-white p-4 text-sm text-[#1d1d1f]/80">
-            This roadmap provides a structured outline of key networking topics and lessons. Use flashcards, daily sessions, MCQs, and labs in the app for spaced-repetition practice and deeper mastery.
+            This roadmap provides a structured outline of key networking topics and lessons. Use flashcards, daily sessions, MCQs, challenges, and visualizations in the app for spaced-repetition practice and deeper mastery.
           </div>
           <div className="space-y-3">
             {studyRoadmap.map((stage, si) => (

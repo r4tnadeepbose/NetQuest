@@ -8,7 +8,6 @@ import Flashcards from './pages/Flashcards'
 import Curriculum from './pages/Curriculum'
 import Challenges from './pages/Challenges'
 import MCQPage from './pages/MCQ'
-import InteractiveLabs from './pages/InteractiveLabs'
 import Progress from './pages/Progress'
 import Achievements from './pages/Achievements'
 import Settings from './pages/Settings'
@@ -42,7 +41,6 @@ export default function App() {
             <Route path="capstones" element={<CapstonesPage />} />
             <Route path="challenges" element={<Challenges />} />
             <Route path="mcq" element={<MCQPage />} />
-            <Route path="labs" element={<InteractiveLabs />} />
             <Route path="progress" element={<Progress />} />
             <Route path="achievements" element={<Achievements />} />
             <Route path="settings" element={<Settings />} />

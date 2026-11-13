@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import { toolDatabase } from '../data/toolsAndTracks'
 import { useStore } from '../store'
+import { EncapsulationVisual, FirewallRuleSimulator, SubnetCalculator, TcpHandshakeStepper } from '../components/NetworkUtilities'
 
 export default function ToolsPage() {
   const { progress, markToolStudied } = useStore()
@@ -35,6 +36,17 @@ export default function ToolsPage() {
           {t.detection && <div className="text-sm text-[#0071e3]/90"><b>Defensive detection:</b> {t.detection}</div>}
         </div>
       })}
+    </div>
+
+    <div className="pt-2">
+      <h2 className="text-xl font-semibold text-[#1d1d1f]">Network Utilities</h2>
+      <p className="text-sm text-[#6e6e73] mt-1">Compact interactive helpers: subnetting calculator and quick protocol/rule references (authorized lab learning context).</p>
+      <div className="grid lg:grid-cols-2 gap-4 mt-3">
+        <SubnetCalculator />
+        <TcpHandshakeStepper />
+        <EncapsulationVisual />
+        <FirewallRuleSimulator />
+      </div>
     </div>
   </div>
 }

@@ -1,5 +1,5 @@
 import { NavLink, Outlet } from 'react-router-dom'
-import { LayoutDashboard, CalendarCheck, Layers, BookOpen, Swords, ListChecks, FlaskConical, BarChart3, Trophy, Settings, Crosshair, Shield, Wrench, Route, Flag, Workflow } from 'lucide-react'
+import { LayoutDashboard, CalendarCheck, Layers, BookOpen, Swords, ListChecks, BarChart3, Trophy, Settings, Crosshair, Shield, Wrench, Route, Flag, Workflow } from 'lucide-react'
 import { useStore } from '../store'
 import { LEVELS } from '../lib/levels'
 
@@ -16,7 +16,6 @@ const nav = [
   { to: '/capstones', label: 'Capstones', icon: Flag },
   { to: '/challenges', label: 'Challenges', icon: Swords },
   { to: '/mcq', label: 'MCQ Arena', icon: ListChecks },
-  { to: '/labs', label: 'Labs', icon: FlaskConical },
   { to: '/progress', label: 'Progress', icon: BarChart3 },
   { to: '/achievements', label: 'Achievements', icon: Trophy },
   { to: '/settings', label: 'Settings', icon: Settings },

@@ -2,9 +2,14 @@ import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import { defineConfig } from 'vite'
 
-// GitHub Actions deploys this repo as a project site at /NetQuest/.
-// Use that base in CI for reliable asset resolution; keep relative base for local/dev.
+// Build static output to docs/ so GitHub Pages can deploy directly from the main branch
+// (Settings > Pages > Source: Deploy from a branch > main /docs).
+// Base is set for the project site path: https://r4tnadeepbose.github.io/NetQuest/
 export default defineConfig({
-  base: process.env.GITHUB_ACTIONS ? '/NetQuest/' : './',
+  base: '/NetQuest/',
   plugins: [react(), tailwindcss()],
+  build: {
+    outDir: 'docs',
+    emptyOutDir: false,
+  },
 })

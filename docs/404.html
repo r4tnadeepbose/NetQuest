@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>NetQuest</title>
+  </head>
+  <body>
+    <script>
+      // SPA fallback for GitHub Pages: redirect unknown paths to the app root.
+      // With HashRouter this is rarely needed, but keeps direct links resilient.
+      (function () {
+        var l = window.location;
+        var base = l.pathname.replace(/\/404\.html$/, '/');
+        // If hosted under a subpath, send to that base; app uses hash routing.
+        l.replace(l.protocol + '//' + l.host + base + l.search + l.hash);
+      })();
+    </script>
+  </body>
+</html>

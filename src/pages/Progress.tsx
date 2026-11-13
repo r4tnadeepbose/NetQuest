@@ -11,6 +11,8 @@ export default function Progress() {
   const due = flashcards.filter(c => isDue(progress.reviews[c.id])).length
   const mlOverall = getOverallUnderstanding()
   const mlUpdates = progress.ml?.totalUpdates || 0
+  const completion = total ? Math.round((mastered / total) * 100) : 0
+  const reviewCoverage = total ? Math.round((reviewed / total) * 100) : 0
   const byChapter = chapters.map(ch => {
     const cards = flashcards.filter(f=>f.chapterId===ch.id)
     const avg = cards.length ? Math.round(cards.reduce((a,c)=>a+masteryFromReview(progress.reviews[c.id]),0)/cards.length) : 0
@@ -31,7 +33,7 @@ export default function Progress() {
   const practical = practicalCards.length ? Math.round((practicalCards.filter(c=> (progress.reviews[c.id]?.repetitions||0)>=4 && ['good','easy'].includes(progress.reviews[c.id]?.lastRating||'')).length / practicalCards.length)*100) : 0
   const theoretical = total ? Math.round((Object.values(progress.reviews).filter(r=>masteryFromReview(r)>=80).length / total)*100) : 0
 
-  return <div className="space-y-4">
+  return <div className="space-y-5">
     <h1 className="text-2xl font-bold text-[#1d1d1f]">Progress & Cybersecurity Analytics</h1>
     <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3">
       <Box label="Total Cards" value={`${total}`} />
@@ -40,6 +42,28 @@ export default function Progress() {
       <Box label="Mastered" value={`${mastered}`} />
       <Box label="ML Understanding" value={`${mlOverall}%`} />
       <Box label="Challenge Accuracy" value={`${challengeAcc}%`} />
+    </div>
+
+    <div className="rounded-2xl border border-black/5 bg-white p-5">
+      <h2 className="text-lg font-semibold text-[#1d1d1f]">Curriculum Mastery</h2>
+      <p className="text-sm text-[#6e6e73] mt-0.5">Overall progress across all cards and your current study coverage.</p>
+      <div className="mt-4 grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="rounded-xl border border-black/5 bg-[#fbfbfd] p-4">
+          <div className="flex items-center justify-between gap-3 text-sm mb-2"><span className="text-[#1d1d1f] font-medium">Overall mastery</span><span className="text-[#1d1d1f] font-semibold">{completion}%</span></div>
+          <div className="h-2.5 rounded-full bg-[#e8e8ed] overflow-hidden max-w-md"><div className="h-full bg-gradient-to-r from-[#0071e3] to-[#34c759] rounded-full transition-all" style={{width:`${completion}%`}} /></div>
+          <div className="text-xs text-[#86868b] mt-2">{mastered} of {total} cards mastered</div>
+        </div>
+        <div className="rounded-xl border border-black/5 bg-[#fbfbfd] p-4">
+          <div className="flex items-center justify-between gap-3 text-sm mb-2"><span className="text-[#1d1d1f] font-medium">Cards reviewed</span><span className="text-[#1d1d1f] font-semibold">{reviewCoverage}%</span></div>
+          <div className="h-2.5 rounded-full bg-[#e8e8ed] overflow-hidden max-w-md"><div className="h-full bg-[#5ac8fa] rounded-full transition-all" style={{width:`${reviewCoverage}%`}} /></div>
+          <div className="text-xs text-[#86868b] mt-2">{reviewed} cards seen at least once</div>
+        </div>
+        <div className="rounded-xl border border-black/5 bg-[#fbfbfd] p-4">
+          <div className="flex items-center justify-between gap-3 text-sm mb-2"><span className="text-[#1d1d1f] font-medium">ML understanding</span><span className="text-[#1d1d1f] font-semibold">{mlOverall}%</span></div>
+          <div className="h-2.5 rounded-full bg-[#e8e8ed] overflow-hidden max-w-md"><div className="h-full bg-gradient-to-r from-cyan-500 to-emerald-400 rounded-full transition-all" style={{width:`${mlOverall}%`}} /></div>
+          <div className="text-xs text-[#86868b] mt-2">{mlUpdates === 0 ? 'Rate cards to train the model' : `${mlUpdates} training updates`}</div>
+        </div>
+      </div>
     </div>
 
     <div className="grid md:grid-cols-2 gap-4">
@@ -78,28 +102,29 @@ export default function Progress() {
       </div>
     </div>
 
-    <div className="rounded-2xl border border-black/5 bg-white p-4">
+    <div className="rounded-2xl border border-black/5 bg-white p-5">
       <h2 className="text-lg font-semibold text-[#1d1d1f] mb-2">Machine Learning Understanding Model</h2>
-      <p className="text-sm text-[#6e6e73] mb-3">On-device online logistic-regression learner updates on every flashcard rating (Again/Hard/Good/Easy) using difficulty, repetitions, lapses, recency, and ease to estimate understanding per card/topic and adapt daily sessions.</p>
-      <div className="flex items-center gap-4">
-        <div className="flex-1 h-3 rounded bg-[#f5f5f7] overflow-hidden"><div className="h-full bg-gradient-to-r from-cyan-500 to-emerald-400" style={{width:`${mlOverall}%`}} /></div>
-        <div className="text-[#0071e3] font-semibold w-16 text-right">{mlOverall}%</div>
+      <p className="text-sm text-[#6e6e73] mb-3 max-w-3xl">On-device online logistic-regression learner updates on every flashcard rating (Again/Hard/Good/Easy) using difficulty, repetitions, lapses, recency, and ease to estimate understanding per card/topic and adapt daily sessions.</p>
+      <div className="flex items-center gap-4 max-w-2xl">
+        <div className="flex-1 h-3 rounded-full bg-[#f5f5f7] overflow-hidden"><div className="h-full bg-gradient-to-r from-cyan-500 to-emerald-400 rounded-full transition-all" style={{width:`${mlOverall}%`}} /></div>
+        <div className="text-[#0071e3] font-semibold w-14 text-right tabular-nums">{mlOverall}%</div>
       </div>
       <div className="text-xs text-[#86868b] mt-2">{mlUpdates === 0 ? 'No training updates yet — rate cards to train the model.' : `Trained on ${mlUpdates} rating events with persistent model weights and topic understanding.`}</div>
     </div>
 
-    <div className="rounded-2xl border border-black/5 bg-white p-4">
+    <div className="rounded-2xl border border-black/5 bg-white p-5">
       <h2 className="text-lg font-semibold text-[#1d1d1f] mb-3">Weekly / Recent Activity</h2>
-      <div className="space-y-2">{progress.history.slice().reverse().slice(0,14).map(h=> <div key={h.date} className="flex items-center gap-3 text-sm"><div className="w-28 text-[#6e6e73]">{h.date}</div><div className="flex-1 h-2 bg-[#f5f5f7] rounded overflow-hidden"><div className="h-full bg-[#0071e3]" style={{width:`${Math.min(100,h.cards*10)}%`}} /></div><div className="w-28 text-right text-[#1d1d1f]/80">{h.cards} cards • {h.xp} XP</div></div>)}
+      <div className="space-y-2.5 max-w-3xl">{progress.history.slice().reverse().slice(0,14).map(h=> <div key={h.date} className="flex items-center gap-3 text-sm"><div className="w-28 shrink-0 text-[#6e6e73]">{h.date}</div><div className="flex-1 h-2.5 bg-[#f5f5f7] rounded-full overflow-hidden"><div className="h-full bg-[#0071e3] rounded-full transition-all" style={{width:`${Math.min(100,h.cards*10)}%`}} /></div><div className="w-32 shrink-0 text-right text-[#1d1d1f]/80 tabular-nums">{h.cards} cards • {h.xp} XP</div></div>)}
       {progress.history.length===0 && <div className="text-[#6e6e73] text-sm">No activity yet. Start a daily session to build your history.</div>}</div>
     </div>
 
-    <div className="rounded-2xl border border-black/5 bg-white p-4">
-      <h2 className="text-lg font-semibold text-[#1d1d1f] mb-3">Topic Mastery & ML Understanding by Chapter</h2>
-      <div className="grid md:grid-cols-2 gap-3">{byChapter.map(({ch,count,avg,ml})=> <div key={ch.id} className="border border-black/5 rounded-xl p-3"><div className="flex justify-between text-sm mb-1"><span className="text-[#1d1d1f]">{ch.title}</span><span className="text-[#6e6e73]">Mastery {avg}%</span></div><div className="h-1.5 bg-[#f5f5f7] rounded overflow-hidden mb-2"><div className="h-full bg-blue-500" style={{width:`${avg}%`}} /></div><div className="flex justify-between text-xs mb-1"><span className="text-[#86868b]">ML confidence</span><span className="text-[#0071e3]">{ml}%</span></div><div className="h-1.5 bg-[#f5f5f7] rounded overflow-hidden"><div className="h-full bg-[#0071e3]" style={{width:`${ml}%`}} /></div><div className="text-xs text-[#86868b] mt-2">{count} cards • lower confidence topics are prioritized adaptively</div></div>)}</div>
+    <div className="rounded-2xl border border-black/5 bg-white p-5">
+      <h2 className="text-lg font-semibold text-[#1d1d1f] mb-1">Topic Mastery & ML Understanding by Chapter</h2>
+      <p className="text-sm text-[#6e6e73] mb-4">Per-chapter progress bars are sized within cards for readability on wide screens.</p>
+      <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-4">{byChapter.map(({ch,count,avg,ml})=> <div key={ch.id} className="border border-black/5 rounded-xl p-4 bg-[#fbfbfd]"><div className="flex justify-between gap-3 text-sm mb-1.5"><span className="text-[#1d1d1f] font-medium line-clamp-2">{ch.title}</span><span className="text-[#6e6e73] shrink-0 tabular-nums">{avg}%</span></div><div className="h-2 bg-[#e8e8ed] rounded-full overflow-hidden mb-3"><div className="h-full bg-blue-500 rounded-full transition-all" style={{width:`${avg}%`}} /></div><div className="flex justify-between text-xs mb-1.5"><span className="text-[#86868b]">ML confidence</span><span className="text-[#0071e3] font-medium tabular-nums">{ml}%</span></div><div className="h-2 bg-[#e8e8ed] rounded-full overflow-hidden"><div className="h-full bg-[#0071e3] rounded-full transition-all" style={{width:`${ml}%`}} /></div><div className="text-xs text-[#86868b] mt-2.5">{count} cards • lower confidence topics prioritized adaptively</div></div>)}</div>
     </div>
   </div>
 }
 function Box({label,value}:{label:string,value:string}){return <div className="rounded-2xl border border-black/5 bg-white p-4"><div className="text-xs uppercase text-[#6e6e73]">{label}</div><div className="text-2xl text-[#1d1d1f] font-semibold mt-1">{value}</div></div>}
 function Row({k,v}:{k:string,v:string}){return <div className="flex justify-between gap-3 text-sm"><span className="text-[#6e6e73]">{k}</span><span className="text-[#1d1d1f] font-medium text-right">{v}</span></div>}
-function Bar({label,value,color}:{label:string,value:number,color:string}){return <div><div className="flex justify-between mb-1"><span className="text-[#1d1d1f]/80">{label}</span><span className="text-[#1d1d1f]">{value}%</span></div><div className="h-1.5 rounded bg-[#f5f5f7] overflow-hidden"><div className={`h-full ${color}`} style={{width:`${Math.max(0,Math.min(100,value))}%`}} /></div></div>}
+function Bar({label,value,color}:{label:string,value:number,color:string}){return <div><div className="flex justify-between mb-1.5"><span className="text-[#1d1d1f]/80">{label}</span><span className="text-[#1d1d1f] font-medium tabular-nums">{value}%</span></div><div className="h-2 rounded-full bg-[#e8e8ed] overflow-hidden max-w-xl"><div className={`h-full ${color} rounded-full transition-all`} style={{width:`${Math.max(0,Math.min(100,value))}%`}} /></div></div>}
